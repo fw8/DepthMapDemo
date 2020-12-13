@@ -257,10 +257,10 @@ extension CVPixelBuffer {
             for x in stride(from: 0, to: width, by: 1) {
                 
                 var pixel = floatBuffer[y * width + x]
-                if pixel > maxDepth {  // cliping ab maxDepth
+                if pixel > maxDepth {  // clipping ab maxDepth
                     pixel = 0
                 } else {
-                    pixel /= 2.0  // Normalisieren auf Werte zw. 0-1
+                    pixel /= maxDepth  // Normalisieren auf Werte zw. 0-1
                 }
                 
                 pixel = min(1.0, max(pixel, 0.0)) // Wertebereich (0-1) sicherstellen
