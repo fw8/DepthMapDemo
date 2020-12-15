@@ -57,6 +57,10 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Used to access LiDAR data</string>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

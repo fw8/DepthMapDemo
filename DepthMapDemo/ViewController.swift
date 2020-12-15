@@ -42,7 +42,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         super.viewWillAppear(animated)
         
         // Enable the smoothed scene depth frame-semantic.
-        configuration.frameSemantics = .smoothedSceneDepth
+        // configuration.frameSemantics = .smoothedSceneDepth
 
         // Run the view's session.
         session.run(configuration)
@@ -50,10 +50,33 @@ class ViewController: UIViewController, ARSessionDelegate {
         // The screen shouldn't dim during AR experiences.
         UIApplication.shared.isIdleTimerDisabled = true
     }
-    
+
     
     @IBAction func saveButtonPressed(_ sender: UIButton) {
-        self.saveData = true
+        //self.saveData = true
+        
+        print("File schreiben!")
+
+        // ----
+        //let levels = ["unlocked", "locked", "locked"]
+        let appData = currentFrameInfoToDict()
+        guard let json = try? JSONSerialization.data(withJSONObject: appData, options: []) else { return }
+        //guard let json = try? JSONEncoder().encode(appData) else { return }
+
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fileURL = documentsPath.appendingPathComponent("scan.json")
+        do {
+            try json.write(to: fileURL)
+        
+            let activityViewController = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
+            activityViewController.popoverPresentationController?.sourceView = sender
+            present(activityViewController, animated: true, completion: nil)
+        } catch {
+            fatalError("Can't export JSON")
+        }
+        
+        
+        print("Save successful!")
     }
     
     
@@ -128,11 +151,12 @@ class ViewController: UIViewController, ARSessionDelegate {
         // Da die DepthMap eine Größe von 256 * 192 (w * h) und die cam 1920 x 1440 entspricht die die Position des
         // Tiefenwerts an der Stelle (u,v) in der DepthMap der Postion u / w * camWidth, v / h * camHeight der cam
 
+        // Scale from depthMap to cam
         let camX = Float(depthMapX) / Float(depthMapWidth) * camWidth!
         let camY = Float(depthMapY) / Float(depthMapHeight) * camHeight!
         
         // Calculate X/Y/Z
-        let worldZ = pixelValue;
+        let worldZ = pixelValue //  pixelValue/sqrt(camX*camX+camY*camY) // pythagoras!
         let worldX = (camX - camOx!) * worldZ / camFx!
         let worldY = (camY - camOy!) * worldZ / camFy!
         //let worldX = (20 * camWidth! - camOx!) * worldZ / camFx!
@@ -212,9 +236,12 @@ class ViewController: UIViewController, ARSessionDelegate {
     }
     
     
-    func currentFrameInfoToDict(currentFrame: ARFrame) -> [String: Any] {
+    func currentFrameInfoToDict() -> [String: Any] {
         
         //let currentTime:String = String(format:"%f", currentFrame.timestamp)
+        guard let currentFrame = self.session.currentFrame
+        else { return [:] }
+        
         let jsonObject: [String: Any] = [
             "timeStamp": currentFrame.timestamp,
             "cameraPos": dictFromVector3(positionFromTransform(currentFrame.camera.transform)),
@@ -225,10 +252,10 @@ class ViewController: UIViewController, ARSessionDelegate {
                 "width": currentFrame.camera.imageResolution.width,
                 "height": currentFrame.camera.imageResolution.height
             ],
-            "depthMapResolution" : [
-                "width": CVPixelBufferGetWidth(currentFrame.sceneDepth!.depthMap),
-                "height": CVPixelBufferGetHeight(currentFrame.sceneDepth!.depthMap)
-            ],
+//            "depthMapResolution" : [
+//                "width": CVPixelBufferGetWidth(currentFrame.sceneDepth!.depthMap),
+//                "height": CVPixelBufferGetHeight(currentFrame.sceneDepth!.depthMap)
+//            ],
         ]
         
         return jsonObject
