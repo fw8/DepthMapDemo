@@ -13,7 +13,7 @@ func frameInfoToJSON(_ frame: ARFrame?) -> Data? {
     
     //let currentTime:String = String(format:"%f", currentFrame.timestamp)
     if frame == nil { return nil }
-    if frame!.sceneDepth == nil {
+    if frame!.smoothedSceneDepth == nil {
         print("no depth data found")
         return nil
     }
@@ -29,10 +29,10 @@ func frameInfoToJSON(_ frame: ARFrame?) -> Data? {
             "height": frame!.camera.imageResolution.height
         ],
         "depthMapResolution" : [
-            "width": CVPixelBufferGetWidth(frame!.sceneDepth!.depthMap),
-            "height": CVPixelBufferGetHeight(frame!.sceneDepth!.depthMap)
+            "width": CVPixelBufferGetWidth(frame!.smoothedSceneDepth!.depthMap),
+            "height": CVPixelBufferGetHeight(frame!.smoothedSceneDepth!.depthMap)
         ],
-        "depthMap": frame!.sceneDepth!.depthMap.exportAsArray()
+        "depthMap": frame!.smoothedSceneDepth!.depthMap.exportAsArray()
     ]
     
     guard let json = try? JSONSerialization.data(withJSONObject: jsonObject, options: []) else { return nil }
