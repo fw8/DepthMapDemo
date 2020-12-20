@@ -1,13 +1,43 @@
 //
-//  Utilities.swift
+//  Controller.swift
 //  DepthMapDemo
 //
-//  Created by Florian Wolpert on 12.12.20.
+//  Created by Florian Wolpert on 20.12.20.
 //
 
 import Foundation
 import ARKit
 
+
+func frameInfoToJSON(_ frame: ARFrame?) -> Data? {
+    
+    //let currentTime:String = String(format:"%f", currentFrame.timestamp)
+    if frame == nil { return nil }
+    if frame!.sceneDepth == nil {
+        print("no depth data found")
+        return nil
+    }
+    
+    let jsonObject: [String: Any] = [
+        "timeStamp": frame!.timestamp,
+        "cameraPos": dictFromVector3(positionFromTransform(frame!.camera.transform)),
+        "cameraEulerAngle": dictFromVector3(frame!.camera.eulerAngles),
+        "cameraTransform": arrayFromTransform(frame!.camera.transform),
+        "cameraIntrinsics": arrayFromTransform(frame!.camera.intrinsics),
+        "camImageResolution": [
+            "width": frame!.camera.imageResolution.width,
+            "height": frame!.camera.imageResolution.height
+        ],
+        "depthMapResolution" : [
+            "width": CVPixelBufferGetWidth(frame!.sceneDepth!.depthMap),
+            "height": CVPixelBufferGetHeight(frame!.sceneDepth!.depthMap)
+        ],
+        "depthMap": frame!.sceneDepth!.depthMap.exportAsArray()
+    ]
+    
+    guard let json = try? JSONSerialization.data(withJSONObject: jsonObject, options: []) else { return nil }
+    return json
+}
 
 // MARK: - Get File Path to Write
 func getDocumentsDirectory() -> String {
@@ -93,3 +123,4 @@ func pixelBufferToUIImage(pixelBuffer: CVPixelBuffer) -> UIImage {
     let uiImage = UIImage(cgImage: cgImage!)
     return uiImage
 }
+
